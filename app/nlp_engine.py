@@ -19,17 +19,17 @@ class NLPEngine:
     def __init__(self, model_name=None):
         if self._initialized:
             return
-            
+
         # Check for local fine-tuned model in 'models/fine_tuned'
-        default_model = "facebook/bart-large-mnli"
+        default_model = "cross-encoder/nli-MiniLM2-L6-H768"  # 90MB — fits in 512MB RAM
         model_path = os.getenv("CUSTOM_MODEL_PATH", "models/fine_tuned")
-        
+
         if os.path.exists(model_path):
             logger.info(f"Loading CUSTOM fine-tuned model from: {model_path}")
             active_model = model_path
         else:
             active_model = model_name or default_model
-            logger.info(f"Using standard model: {active_model}")
+            logger.info(f"Using model: {active_model}")
 
         self.device = 0 if torch.cuda.is_available() else -1
         try:
