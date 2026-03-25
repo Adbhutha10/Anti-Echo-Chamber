@@ -1,0 +1,56 @@
+services:
+  # ── PostgreSQL Database ────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: aec_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aec_user
+      POSTGRES_PASSWORD: aec_password
+      POSTGRES_DB: anti_echo_chamber
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aec_user -d anti_echo_chamber"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── FastAPI Backend ────────────────────────────────────────────────────────
+  api:
+    build: .
+    container_name: aec_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://aec_user:aec_password@db:5432/anti_echo_chamber
+      NEWSAPI_KEY: ${NEWSAPI_KEY:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app          # Hot-reload in dev
+      - model_cache:/root/.cache/huggingface   # Cache downloaded models
+
+  # ── React Frontend (Vite dev server) ──────────────────────────────────────
+  frontend:
+    image: node:20-alpine
+    container_name: aec_frontend
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - api
+    environment:
+      VITE_API_BASE: http://localhost:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+  model_cache:

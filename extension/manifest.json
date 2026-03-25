@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Anti-Echo Chamber",
+  "version": "1.0.0",
+  "description": "Detects cognitive bias and echo chambers on news pages in real-time.",
+  "permissions": ["activeTab", "storage", "scripting"],
+  "host_permissions": ["http://localhost:8000/*", "https://*/*", "http://*/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.cnn.com/*",
+        "*://*.foxnews.com/*",
+        "*://*.bbc.com/*",
+        "*://*.theguardian.com/*",
+        "*://*.nytimes.com/*",
+        "*://*.reuters.com/*",
+        "*://*.apnews.com/*",
+        "*://*.washingtonpost.com/*",
+        "*://*.politico.com/*",
+        "*://*.breitbart.com/*",
+        "*://*.msnbc.com/*",
+        "*://*.nbcnews.com/*",
+        "*://*.abcnews.go.com/*",
+        "*://*.cbsnews.com/*",
+        "*://*.huffpost.com/*",
+        "*://*.thehill.com/*",
+        "*://*.axios.com/*",
+        "*://*.vox.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
