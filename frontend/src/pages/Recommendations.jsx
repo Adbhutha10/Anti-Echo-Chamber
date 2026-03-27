@@ -6,127 +6,99 @@ export default function Recommendations({ userId, profile }) {
   const [rec, setRec]         = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
-
   const API_BASE = import.meta.env.VITE_API_BASE || "https://anti-echo-chamber.onrender.com";
-  const trapped  = profile?.echo_chamber_detected;
+  const trapped = profile?.echo_chamber_detected;
+  const biasColor = rec ? (rec.cognitive_bias > 0.6 ? '#ef4444' : rec.cognitive_bias > 0.35 ? '#f59e0b' : '#10b981') : '#10b981';
 
   const fetchRec = async () => {
     if (!userId) return;
     setLoading(true); setError(''); setRec(null);
     try {
       const res = await fetch(`${API_BASE}/users/${userId}/recommend`);
-      if (!res.ok) throw new Error(`API error ${res.status}`);
+      if (!res.ok) throw new Error();
       setRec(await res.json());
-    } catch (e) {
-      setError('Could not load recommendation. Analyze more articles to build your profile first.');
-    }
+    } catch { setError('No recommendation available. Analyze more articles first.'); }
     setLoading(false);
   };
 
-  const biasColor = rec
-    ? rec.cognitive_bias > 0.6 ? '#ef4444' : rec.cognitive_bias > 0.35 ? '#f59e0b' : '#10b981'
-    : '#10b981';
+  const steps = [
+    { n: '1', t: 'Profile Analysis', b: 'Your average political leaning, bias, and emotional manipulation are computed from all tracked articles.' },
+    { n: '2', t: 'Penalty Scoring', b: 'Every article is scored using a penalty formula — high bias/emotion is penalized, opposing-leaning content is rewarded.' },
+    { n: '3', t: 'Recommendation', b: 'The article with the lowest penalty is returned as your "antidote" — content most likely to depolarize your feed.' },
+  ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-7">
       <div>
-        <h1 className="text-2xl font-bold text-white">Opposing Views Engine</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Our depolarization algorithm analyzes your reading trajectory and recommends the article most likely to broaden your perspective.
-        </p>
+        <span className="badge-blue">AI Engine</span>
+        <h1 className="text-3xl font-bold text-white mt-2">Opposing Views Engine</h1>
+        <p className="text-gray-500 text-sm mt-1.5">Our depolarization algorithm finds the article most likely to broaden your perspective based on your reading profile.</p>
       </div>
 
-      {/* How Recommendations Work */}
-      <div className="bg-[#111318] border border-white/5 rounded-2xl p-6 space-y-4">
-        <div className="flex items-center gap-2">
-          <Info size={15} className="text-blue-400" />
-          <h3 className="text-white font-semibold text-sm">How the Algorithm Works</h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-gray-400">
-          <div className="space-y-1">
-            <p className="text-white font-medium">Step 1 — Profile Analysis</p>
-            <p>Your average political leaning, bias score, and emotional manipulation score are computed from all tracked articles.</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-white font-medium">Step 2 — Penalty Scoring</p>
-            <p>Every article in the inventory is scored using a penalty formula that penalizes high bias / high emotion, and rewards content that leans opposite to you.</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-white font-medium">Step 3 — Recommendation</p>
-            <p>The article with the lowest total penalty score is returned as your "antidote" — the content most likely to depolarize your feed.</p>
-          </div>
+      {/* Algorithm steps */}
+      <div className="card space-y-5">
+        <div className="flex items-center gap-2 mb-1"><Info size={14} className="text-blue-400" /><h3 className="text-white font-semibold text-sm">How the Algorithm Works</h3></div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {steps.map(s => (
+            <div key={s.n} className="space-y-2">
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-blue-300 font-mono"
+                style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}>{s.n}</div>
+              <p className="text-sm font-semibold text-white">{s.t}</p>
+              <p className="text-xs text-gray-500 leading-relaxed">{s.b}</p>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Echo Chamber Status */}
-      {profile && !trapped && (
-        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 flex gap-3">
-          <Info size={16} className="text-gray-500 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-gray-400">
-            No echo chamber detected yet. You can still manually fetch a recommendation using the button below. Recommendations become automatic when your bias score exceeds the warning threshold.
-          </p>
-        </div>
-      )}
+      {/* Status banners */}
       {trapped && (
-        <div className="bg-red-500/10 border border-red-500/25 rounded-2xl p-5 flex gap-3">
-          <AlertTriangle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-red-300">{profile.metrics_warning} An antidote article has been identified below.</p>
+        <div className="flex items-start gap-3 px-4 py-3.5 rounded-xl" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+          <AlertTriangle size={15} className="text-red-400 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-300">{profile.metrics_warning || 'Echo chamber detected.'} An antidote is ready below.</p>
+        </div>
+      )}
+      {profile && !trapped && (
+        <div className="flex items-start gap-3 px-4 py-3.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <Info size={15} className="text-gray-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-gray-500">No echo chamber detected. You can still fetch a manual recommendation to explore new perspectives.</p>
         </div>
       )}
 
-      {/* Fetch Button */}
-      <button
-        onClick={fetchRec} disabled={loading || !userId}
-        className="flex items-center gap-2 px-6 py-3 bg-purple-500/10 border border-purple-500/25 hover:bg-purple-500/20 text-purple-300 font-semibold rounded-xl text-sm transition-all disabled:opacity-40"
-      >
+      <button onClick={fetchRec} disabled={loading || !userId} className="btn-purple flex items-center gap-2">
         <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
         {loading ? 'Finding Antidote...' : 'Get Recommendation'}
       </button>
       {error && <p className="text-red-400 text-sm">{error}</p>}
 
-      {/* Recommendation Card */}
       <AnimatePresence>
         {rec && (
-          <motion.div
-            key="rec" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-[#111318] border border-purple-500/20 rounded-2xl overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/5 px-6 py-4 border-b border-white/5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Target size={16} className="text-purple-400" />
-                <h3 className="text-white font-semibold">Recommended Article</h3>
-              </div>
+          <motion.div key="rec" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="overflow-hidden rounded-2xl" style={{ border: '1px solid rgba(139,92,246,0.2)', background: 'linear-gradient(135deg, rgba(139,92,246,0.06), rgba(59,130,246,0.04))' }}>
+            <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(139,92,246,0.06)' }}>
+              <div className="flex items-center gap-2"><Target size={15} className="text-purple-400" /><h3 className="text-white font-semibold">Recommended Article</h3></div>
               {rec.url && rec.url !== '#' && (
                 <a href={rec.url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors border border-blue-400/20 rounded-lg px-3 py-1.5">
-                  Read Full Article <ExternalLink size={11} />
+                  className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors px-3 py-1.5 rounded-lg"
+                  style={{ border: '1px solid rgba(59,130,246,0.2)' }}>
+                  Read Article <ExternalLink size={11} />
                 </a>
               )}
             </div>
-
             <div className="p-6 space-y-5">
-              <h4 className="text-white font-bold text-lg leading-snug">{rec.title}</h4>
-              <p className="text-gray-400 text-sm leading-relaxed italic">"{rec.content}"</p>
-
-              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/5">
-                <div className="text-center space-y-1">
-                  <p className="text-xs text-gray-500">Bias Score</p>
-                  <p className="text-lg font-bold font-mono" style={{ color: biasColor }}>
-                    {Math.round(rec.cognitive_bias * 100)}%
-                  </p>
-                </div>
-                <div className="text-center space-y-1">
-                  <p className="text-xs text-gray-500">Emotion Score</p>
-                  <p className="text-lg font-bold font-mono text-amber-400">
-                    {Math.round(rec.emotional_manipulation * 100)}%
-                  </p>
-                </div>
-                <div className="text-center space-y-1">
-                  <p className="text-xs text-gray-500">Depolarization</p>
-                  <p className="text-lg font-bold font-mono text-emerald-400">
-                    {rec.depolarization_score ?? '—'}/10
-                  </p>
-                </div>
+              <h4 className="text-white font-bold text-xl leading-snug">{rec.title}</h4>
+              <p className="text-gray-400 text-sm leading-relaxed italic border-l-2 border-purple-500/30 pl-4">"{rec.content}"</p>
+              <div className="gradient-divider" />
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { label: 'Bias Score', val: `${Math.round(rec.cognitive_bias * 100)}%`, color: biasColor },
+                  { label: 'Emotion Score', val: `${Math.round(rec.emotional_manipulation * 100)}%`, color: '#f59e0b' },
+                  { label: 'Depolarization', val: rec.depolarization_score ? `${rec.depolarization_score}/10` : 'N/A', color: '#10b981' },
+                ].map(s => (
+                  <div key={s.label} className="text-center px-4 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <p className="text-[10px] text-gray-600 uppercase tracking-wider mb-1">{s.label}</p>
+                    <p className="text-xl font-bold font-mono" style={{ color: s.color }}>{s.val}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>
