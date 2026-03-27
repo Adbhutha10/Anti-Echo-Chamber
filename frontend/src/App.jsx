@@ -8,7 +8,7 @@ import BiasPanel from './components/BiasPanel';
 import ThoughtMap from './components/ThoughtMap';
 import ActivityTimeline from './components/ActivityTimeline';
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_BASE || "https://anti-echo-chamber.onrender.com";
 
 export default function App() {
   const [username, setUsername] = useState('');

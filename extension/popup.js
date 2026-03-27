@@ -1,6 +1,6 @@
 // popup.js — Extension popup logic
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'https://anti-echo-chamber.onrender.com';
 
 const usernameInput = document.getElementById('usernameInput');
 const saveBtn       = document.getElementById('saveBtn');

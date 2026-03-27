@@ -1,7 +1,7 @@
 // content.js — Injected into news pages
 // Extracts article text and injects a bias overlay into the DOM
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'https://anti-echo-chamber.onrender.com';
 const OVERLAY_ID = 'aec-bias-overlay';
 
 function extractArticleText() {
